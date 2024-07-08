@@ -6,8 +6,8 @@ import random
 import streamlit as st # 使いたい...
 import math
 
-SIMU_COUNT = 100 # シミュレーション回数
-AGENT_NUM = 20 # エージェント数
+SIMU_COUNT = 50 # シミュレーション回数
+AGENT_NUM = 10 # エージェント数
 MAP_SIZE_X = 20 # マップサイズ
 MAP_SIZE_Y = 10 
 object_cost = 100 # 障害物のコスト
