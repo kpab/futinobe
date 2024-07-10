@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 class Employee:
     def __init__(self,cell_x,cell_y,id,taken_positions):
         while True:
-            position=(np.random.randint(cell_x),np.random.randint(cell_y))
+            position=(np.random.randint(cell_x)-0.5,np.random.randint(cell_y)-0.5)
             if position not in taken_positions:
                 self.position=position
                 break
         self.direction=(0,0)
-        self.cell_x=cell_x
-        self.cell_y=cell_y
+        self.cell_x=cell_x-0.5
+        self.cell_y=cell_y-0.5
         self.id=id
         self.state='red'
         self.encounter_count=0
@@ -70,7 +70,7 @@ class Employee:
                 break
 class Customer:
     def __init__(self,cell_x,cell_y,id):
-        self.position=(3,3)
+        self.position=(3.5,3.5)
         self.waiting=True
         self.moving=False
         self.color='blue'
@@ -109,13 +109,13 @@ taken_positions.update(employee.position for employee in employees)
 fig,ax=plt.subplots(figsize=(6,6))
 ax.set_xlim(0,cell_x-1)
 ax.set_ylim(0,cell_y-1)
-ax.set_xticks(np.arange(0,cell_x,1))
-ax.set_yticks(np.arange(0,cell_y,1))
+ax.set_xticks([0.5,1.5])
+ax.set_yticks(np.arange(0.5,cell_y+0.5,1))
 ax.grid(True)
 employee_scatters=[ax.scatter(employee.position[0],employee.position[1],color='red',s=100) for employee in employees]
 customers=[]
 customer_id=1
-new_customer_position=(3,3)
+new_customer_position=(3.5,3.5)
 for frame in range(1000):
     employee_positions=[employee.position for employee in employees]
     for employee in employees:
@@ -141,15 +141,15 @@ for frame in range(1000):
     ax.clear()
     ax.set_xlim(0,cell_x-1)
     ax.set_ylim(0,cell_y-1)
-    ax.set_xticks(np.arange(0,cell_x,1))
-    ax.set_yticks(np.arange(0,cell_y,1))
+    ax.set_xticks(np.arange(0.5,cell_x+0.5,1))
+    ax.set_yticks(np.arange(0.5,cell_y+0.5,1))
     ax.grid(True)
     for scatter,employee in zip(employee_scatters,employees):
         scatter.set_offsets(employee.position)
         ax.scatter(employee.position[0],employee.position[1],color=employee.state,s=100)
         ax.text(employee.position[0],employee.position[1],employee.id,color='black',fontsize=20,ha='center',va='center')
-    for customer in customers:
-        ax.scatter(customer.position[0],customer.position[1],color=customer.color,s=100)
+    for customer in customers:  
+        ax.scatter(customer.position[0],customer.position[1],color=customer.color,s=10000)
         ax.text(customer.position[0],customer.position[1],customer.id,color='black',fontsize=20,ha='center',va='center')
     plt.pause(1.0)
 plt.show()
