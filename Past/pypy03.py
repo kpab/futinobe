@@ -219,6 +219,7 @@ def simulation(SIMU_COUNT):
 
     ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=800, repeat=False)
     plt.show()
+
     with open("xxlog.txt", "w") as f:
         for line in result:
             print(line, file=f)

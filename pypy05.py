@@ -61,16 +61,12 @@ class Agent():
 
     # --- 移動 ---
     def move(self): # pathリスト順に位置を更新
-        if self.path: 
+        if self.path:
             next_position = self.path.pop(0)
             self.position = [next_position[0], next_position[1]]
 
 
-### ----- 貰ったゾーン ----- ###
 class Node():
-    """
-    ノードクラス、貰ったやつ
-    """
     def __init__(self, position, parent=None):
         self.position = position
         self.parent = parent
@@ -185,8 +181,20 @@ def simulation(SIMU_COUNT):
         ax.axes.yaxis.set_ticklabels([])
         ax.axes.invert_yaxis() # y軸の反転
         ax.grid(True)
+
+        # 0712 こっから衝突回避
+        
+        burst = []
+        for id, agent in enumerate(agents):
+            for id_2 ,agent_2 in enumerate(agents):
+                if len(agent.path)<2 or len(agent_2.path)<2:
+                    continue
+                if id!=id_2 and agent.path[1]==agent_2.path[1]: # 異なるidで次の場所が同じ
+                    agent.path = agent.calc_path(maze)
+
         # --- エージェント位置更新 ---
         for agent in agents:
+            # agent.path = agent.calc_path(maze) # 経路再計算
             agent.move()
             ax.scatter(agent.position[1], agent.position[0])
             ax.set_title(f"シミュレーション: {s}")
@@ -200,7 +208,7 @@ def simulation(SIMU_COUNT):
             ax.scatter(l[1], l[0], s=200, marker=",", color=color_list[0])   
         # ------------
 
-    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=500, repeat=False)
+    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=100, repeat=False)
     plt.show()
     # ani.save("xx.gif", writer="imagemagick")
     # --- 結果出力 ---
