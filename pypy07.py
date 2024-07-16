@@ -1,10 +1,9 @@
 """
-衝突回避
+エージェント生成間隔
 """
-
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.cm as cm # カラーマップ
 import japanize_matplotlib
 import numpy as np
 import pandas as pd
@@ -16,7 +15,9 @@ import datetime
 import xx_mycolor # マイカラー
 
 SIMU_COUNT = 60 # シミュレーション回数
-AGENT_NUM = 20 # エージェント数
+AGENT_NUM = 10 # 初期エージェント数
+BORN_AGENT_NUM = 3 # 新規エージェント数
+BORN_INTERVAL = 0.4 # エージェント生成間隔
 MAP_SIZE_X = 40 # マップサイズ
 MAP_SIZE_Y = 20
 object_cost = 100 # 障害物のコスト
@@ -57,8 +58,14 @@ class Agent():
         self.id = ID
         self.position = [init_x, init_y]
         self.goal = goal_list[random.randint(0, len(goal_list)-1)] # 改札ランダム設定
-        self.speed = 0.2
         self.path = self.calc_path(maze) # 経路list
+        self.color = cm.Spectral(float(self.id)/50.0) # カラーマップ指定
+        # --- テスト用 ---
+        # if self.id%5==0:
+        #     self.color = "red"
+        # else:
+        #     self.color = "black"
+        # ---------------
     # --- 情報 ---
     def info(self):
         return  f"ID:{self.id}\n現在地:{self.position}\n改札:{self.goal}\n経路:{self.path}"
@@ -133,6 +140,7 @@ def add_to_open(open_list, neighbor):
 # シミュ
 def simulation(SIMU_COUNT):
     s = 0 # シミュレーションカウント用
+    sum_id = AGENT_NUM # id合計
     result.append(f"最終更新: {datetime.datetime.now()}")
     # --- プロット設定 ---
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y), facecolor=color_list[random.randint(0,len(color_list)-1)])
@@ -161,9 +169,8 @@ def simulation(SIMU_COUNT):
         start_x, start_y = start_list[rs][0], start_list[rs][1]
         agent = Agent(i, start_x, start_y, goal_list, maze)
         agents.append(agent)
-        ax.scatter(agent.position[1], agent.position[0])
+        ax.scatter(agent.position[1], agent.position[0], c=agent.color)
         result.append(agent.info())
-
     # --- 障害物の初期配置 ---
     for w in wall_list:
         ax.scatter(w[1], w[0], marker="x", c=color_1)
@@ -174,6 +181,7 @@ def simulation(SIMU_COUNT):
 
     def update(frame):
         nonlocal s # シミュレーションカウント
+        nonlocal sum_id
         s += 1
         global result
         result.append(f"---------simulation:{s}------------")
@@ -189,7 +197,7 @@ def simulation(SIMU_COUNT):
         ax.axes.invert_yaxis() # y軸の反転
         ax.grid(True)
 
-        # 0716 こっから衝突回避
+        # こっから衝突回避
         for id, agent in enumerate(agents):
             for id_2 ,agent_2 in enumerate(agents):
                 if len(agent.path)<2 or len(agent_2.path)<2:
@@ -209,10 +217,24 @@ def simulation(SIMU_COUNT):
         # --- エージェント位置更新 ---
         for agent in agents:
             # agent.path = agent.calc_path(maze) # 経路再計算
+            if len(agent.path) < 1:
+                agents.remove(agent)
             agent.move()
-            ax.scatter(agent.position[1], agent.position[0])
+            ax.scatter(agent.position[1], agent.position[0], c=agent.color)
             ax.set_title(f"シミュレーション: {s}")
             result.append(agent.info())
+
+        # --- 新規エージェント ---
+        for i in range(BORN_AGENT_NUM):
+            if random.random() < BORN_INTERVAL:
+                # --- 初期位置、目的の改札設定 ---
+                rs = random.randint(0, len(start_list)-1)
+                start_x, start_y = start_list[rs][0], start_list[rs][1]
+                agent = Agent(i+sum_id, start_x, start_y, goal_list, maze)
+                agents.append(agent)
+                ax.scatter(agent.position[1], agent.position[0])
+                result.append(agent.info())
+                sum_id+=1
         # --- 障害物の再配置 ---
         for w in wall_list:
             ax.scatter(w[1], w[0], marker="x", color=color_1)
@@ -222,7 +244,7 @@ def simulation(SIMU_COUNT):
             ax.scatter(l[1], l[0], s=200, marker=",", color=color_2)   
         # ------------
 
-    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=1000, repeat=False)
+    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=500, repeat=False)
     plt.show()
     # ani.save("xx.gif", writer="imagemagick")
     # --- 結果出力 ---
@@ -230,7 +252,6 @@ def simulation(SIMU_COUNT):
         for line in result:
             print(line, file=f)
     # ---------------
-
 if __name__ == "__main__":
     simulation(SIMU_COUNT)
     
