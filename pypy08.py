@@ -1,22 +1,22 @@
 """
-衝突回避
+エージェント生成間隔
 """
-
-
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.cm as cm # カラーマップ
 import japanize_matplotlib
 import numpy as np
 import pandas as pd
 import random
-import streamlit as st # 使いたい...
-import math
 import heapq
 import datetime
 import xx_mycolor # マイカラー
+import xx_scattering as sca
 
-SIMU_COUNT = 60 # シミュレーション回数
-AGENT_NUM = 20 # エージェント数
+SIMU_COUNT = 100 # シミュレーション回数
+AGENT_NUM = 10 # 初期エージェント数
+BORN_AGENT_NUM = 5 # 新規エージェント数
+BORN_INTERVAL = 0.4 # エージェント生成間隔
 MAP_SIZE_X = 40 # マップサイズ
 MAP_SIZE_Y = 20
 object_cost = 100 # 障害物のコスト
@@ -57,8 +57,14 @@ class Agent():
         self.id = ID
         self.position = [init_x, init_y]
         self.goal = goal_list[random.randint(0, len(goal_list)-1)] # 改札ランダム設定
-        self.speed = 0.2
         self.path = self.calc_path(maze) # 経路list
+        # self.color = cm.Spectral(float(self.id)/50.0) # カラーマップ指定
+        # --- テスト用 ---
+        if self.id%10==0:
+            self.color = "red"
+        else:
+            self.color = "black"
+        # ---------------
     # --- 情報 ---
     def info(self):
         return  f"ID:{self.id}\n現在地:{self.position}\n改札:{self.goal}\n経路:{self.path}"
@@ -91,7 +97,7 @@ def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def astar(maze, start, end): # A*
-    open_list = [] # 探索中のノード？
+    open_list = [] # 探索中のノード
     closed_list = set() # 見たノードたち
     start_node = Node(start) # スタートノード
     end_node = Node(end) # えんど
@@ -99,7 +105,7 @@ def astar(maze, start, end): # A*
     # --- open_listをもれなく ---
     while open_list:
         current_node = heapq.heappop(open_list) # 最小値を取り出し消去
-        closed_list.add(current_node.position) # 見たよん
+        closed_list.add(current_node.position) # 見たよ
         # --- 現在ノードがエンドノードならpathを作成 ---
         if current_node.position == end_node.position:
             path = []
@@ -122,7 +128,7 @@ def astar(maze, start, end): # A*
             neighbor.f = neighbor.g + neighbor.h
             if add_to_open(open_list, neighbor):
                 heapq.heappush(open_list, neighbor) # open_listにneighborを追加
-    return None
+    return [start]
 
 def add_to_open(open_list, neighbor):
     for node in open_list:
@@ -133,6 +139,7 @@ def add_to_open(open_list, neighbor):
 # シミュ
 def simulation(SIMU_COUNT):
     s = 0 # シミュレーションカウント用
+    sum_id = AGENT_NUM # id合計
     result.append(f"最終更新: {datetime.datetime.now()}")
     # --- プロット設定 ---
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y), facecolor=color_list[random.randint(0,len(color_list)-1)])
@@ -161,19 +168,14 @@ def simulation(SIMU_COUNT):
         start_x, start_y = start_list[rs][0], start_list[rs][1]
         agent = Agent(i, start_x, start_y, goal_list, maze)
         agents.append(agent)
-        ax.scatter(agent.position[1], agent.position[0])
+        ax.scatter(agent.position[1], agent.position[0], c=agent.color)
         result.append(agent.info())
-
     # --- 障害物の初期配置 ---
-    for w in wall_list:
-        ax.scatter(w[1], w[0], marker="x", c=color_1)
-    for g in goal_list:
-        ax.scatter(g[1], g[0], marker="*")
-    for l in start_list:
-        ax.scatter(l[1], l[0], s=200, marker=",", c=color_2)
+    sca.scatman(ax, wall_list, goal_list, start_list, color_1, color_2)
 
     def update(frame):
         nonlocal s # シミュレーションカウント
+        nonlocal sum_id
         s += 1
         global result
         result.append(f"---------simulation:{s}------------")
@@ -189,39 +191,59 @@ def simulation(SIMU_COUNT):
         ax.axes.invert_yaxis() # y軸の反転
         ax.grid(True)
 
-        # 0716 こっから衝突回避
-        for id, agent in enumerate(agents):
-            for id_2 ,agent_2 in enumerate(agents):
-                if len(agent.path)<2 or len(agent_2.path)<2:
+        # こっから衝突回避
+        for agent in agents:
+            avoid = False
+            if not agent.path: # パスない場合次のエージェントへ
+                continue
+            (x, y) = agent.position
+            neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+            for agent_2 in agents:
+                if not agent_2.path:
                     continue
-                if id!=id_2 and agent.path[0]==agent_2.path[0]: # 異なるidで次の場所が同じ
-                    (x, y) = agent.position
-                    neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-                    for next_posi in neighbors:
-                        if maze[next_posi[0]][next_posi[1]]!= 0: # nextposiの壁除去
-                            neighbors.remove(next_posi)
-                    if len(neighbors) < 1: # 避けれない場合停止
-                        agent.path.insert(0, agent.position)
-                        continue
-                    agent.position = neighbors[random.randint(0,len(neighbors)-1)] # neighborsからランダムに移動
-                    agent.path = agent.calc_path(maze)
-
+                if agent.id!=agent_2.id and agent.path[0]==agent_2.path[0]: # 異なるidで次の場所が同じ
+                    print(f"シミュレーション{s}の{agent.id}と{agent_2.id}が{(x, y)}で衝突の危機")
+                    neighbors = [pos for pos in neighbors if pos != agent.path[0]] # 予定パスを除く
+                    avoid = True
+            if not avoid:
+                continue
+            # --- 移動範囲の制限 ---
+            can_neighbors = [
+                pos for pos in neighbors # neighborsの中から
+                if maze[pos[0]][pos[1]] != object_cost and # 壁でもない
+                not any(pos == a.position for a in agents) # 他のエージェントがいない場所をピック
+                # not any(pos == a.path[0] for a in agents if len(a.path)>0)
+            ]        
+            if can_neighbors:
+                agent.position = can_neighbors[random.randint(0,len(can_neighbors)-1)] # neighborsからランダムに移動
+                agent.path = agent.calc_path(maze)
+            else:
+                agent.path.insert(0, agent.position)
+    
+            
         # --- エージェント位置更新 ---
         for agent in agents:
             # agent.path = agent.calc_path(maze) # 経路再計算
+            if len(agent.path) < 1:
+                agents.remove(agent)
             agent.move()
-            ax.scatter(agent.position[1], agent.position[0])
+            ax.scatter(agent.position[1], agent.position[0], c=agent.color)
             ax.set_title(f"シミュレーション: {s}")
             result.append(agent.info())
-        # --- 障害物の再配置 ---
-        for w in wall_list:
-            ax.scatter(w[1], w[0], marker="x", color=color_1)
-        for g in goal_list:
-            ax.scatter(g[1], g[0], marker="*")
-        for l in start_list:
-            ax.scatter(l[1], l[0], s=200, marker=",", color=color_2)   
 
-        # sca.scatman(ax, wall_list, goal_list, start_list)
+        # --- 新規エージェント ---
+        for i in range(BORN_AGENT_NUM):
+            if random.random() < BORN_INTERVAL:
+                # --- 初期位置、目的の改札設定 ---
+                rs = random.randint(0, len(start_list)-1)
+                start_x, start_y = start_list[rs][0], start_list[rs][1]
+                agent = Agent(sum_id, start_x, start_y, goal_list, maze)
+                agents.append(agent)
+                ax.scatter(agent.position[1], agent.position[0])
+                result.append(agent.info())
+                sum_id+=1
+        # --- 障害物の再配置 ---
+        sca.scatman(ax, wall_list, goal_list, start_list, color_1, color_2)
         # ------------
 
     ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=1000, repeat=False)
@@ -232,7 +254,6 @@ def simulation(SIMU_COUNT):
         for line in result:
             print(line, file=f)
     # ---------------
-
 if __name__ == "__main__":
     simulation(SIMU_COUNT)
     
