@@ -217,7 +217,7 @@ def simulation(SIMU_COUNT):
             if can_neighbors:
                 agent.position = can_neighbors[random.randint(0,len(can_neighbors)-1)] # neighborsからランダムに移動
                 agent.path = agent.calc_path(maze)
-            else:
+            else: # 動ける場所がない場合、停止
                 agent.path.insert(0, agent.position)
     
             
