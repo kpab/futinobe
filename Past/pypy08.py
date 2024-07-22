@@ -1,6 +1,3 @@
-"""
-エージェント生成間隔
-"""
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.cm as cm # カラーマップ
@@ -128,7 +125,7 @@ def astar(maze, start, end): # A*
             neighbor.f = neighbor.g + neighbor.h
             if add_to_open(open_list, neighbor):
                 heapq.heappush(open_list, neighbor) # open_listにneighborを追加
-    return [start]
+    return [start] # 変更した
 
 def add_to_open(open_list, neighbor):
     for node in open_list:
@@ -143,14 +140,7 @@ def simulation(SIMU_COUNT):
     result.append(f"最終更新: {datetime.datetime.now()}")
     # --- プロット設定 ---
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y), facecolor=color_list[random.randint(0,len(color_list)-1)])
-    ax.set_xlim(-0.5, MAP_SIZE_X-1)
-    ax.set_ylim(-0.5, MAP_SIZE_Y-0.5)
-    ax.set_xticks(np.arange(0.5, MAP_SIZE_X-0.5, 1))
-    ax.set_yticks(np.arange(0.5, MAP_SIZE_Y-0.5, 1))
-    ax.axes.xaxis.set_ticklabels([])
-    ax.axes.yaxis.set_ticklabels([])
-    ax.axes.invert_yaxis() # y軸の反転
-    ax.grid(True)
+    sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
     
     # --- マップ生成 ---
     map = Map()
@@ -182,14 +172,7 @@ def simulation(SIMU_COUNT):
         # ------------------------------
         ax.set_title(f"simulation: {s}")
         ax.clear() # 前のフレームのエージェントをクリア
-        ax.set_xlim(-0.5, MAP_SIZE_X-0.5)
-        ax.set_ylim(-0.5, MAP_SIZE_Y-0.5)
-        ax.set_xticks(np.arange(0.5, MAP_SIZE_X-0.5, 1))
-        ax.set_yticks(np.arange(0.5, MAP_SIZE_Y-0.5, 1))
-        ax.axes.xaxis.set_ticklabels([])
-        ax.axes.yaxis.set_ticklabels([])
-        ax.axes.invert_yaxis() # y軸の反転
-        ax.grid(True)
+        sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
 
         # こっから衝突回避
         for agent in agents:
@@ -211,8 +194,8 @@ def simulation(SIMU_COUNT):
             can_neighbors = [
                 pos for pos in neighbors # neighborsの中から
                 if maze[pos[0]][pos[1]] != object_cost and # 壁でもない
-                not any(pos == a.position for a in agents) # 他のエージェントがいない場所をピック
-                # not any(pos == a.path[0] for a in agents if len(a.path)>0)
+                not any(pos == a.position for a in agents) and# 他のエージェントがいない場所をピック
+                not any(pos == a.path[0] for a in agents if len(a.path)>0)
             ]        
             if can_neighbors:
                 agent.position = can_neighbors[random.randint(0,len(can_neighbors)-1)] # neighborsからランダムに移動
