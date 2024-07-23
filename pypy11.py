@@ -1,3 +1,7 @@
+"""
+マス目拡張
+"""
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.cm as cm # カラーマップ
@@ -17,7 +21,8 @@ BORN_AGENT_NUM = 5 # 新規エージェント数
 BORN_INTERVAL = 0.4 # エージェント生成間隔
 MAP_SIZE_X = 40 # マップサイズ
 MAP_SIZE_Y = 20
-object_cost = 100 # 障害物のコスト
+object_cost = 1000 # 障害物のコスト
+max_speed = 3 # 歩行者1step最大移動距離
 color_list = xx_mycolor.color_list
 start_list = []
 goal_list = []
@@ -55,6 +60,7 @@ class Agent():
         self.position = [init_x, init_y]
         self.r = random.randint(0, len(goal_list)-1)
         self.goal = goal_list[self.r] # 改札ランダム設定
+        self.speed = max_speed
         # self.path = self.calc_path(maze) # 経路list
         self.path = astar(maze, tuple(self.position), tuple(self.goal)) 
         ## --- color設定 ---
@@ -124,7 +130,7 @@ def astar(maze, start, end): # A*
                 current_node = current_node.parent
             return path[::-1]
         (x, y) = current_node.position
-        neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+        neighbors = neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
         for next_position in neighbors:
             if (next_position[0] < 0 or next_position[0] >= len(maze) or # 迷路の左右に飛び出る
                 next_position[1] < 0 or next_position[1] >= len(maze[0]) or # 迷路の上に飛ぶ、下に埋められる
@@ -190,16 +196,23 @@ def simulation(SIMU_COUNT):
         sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
 
         # こっから衝突回避
-        next_ag_posi = ag.futurePrediction(agents)
         for agent in agents:
             avoid = False
             if not agent.path: # パスない場合次のエージェントへ
                 continue
             (x, y) = agent.position
+            print(x, y)
             back_posi  = (x - (agent.path[0][0]-agent.position[0]), y - (agent.path[0][1]-agent.position[1]))
-            neighbors = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-            if back_posi in neighbors:
-                neighbors.remove(back_posi) # 後方の選択肢を除外
+            neighbors = []
+            for max in range(max_speed)[::-1]: # 長距離から二次元リスト
+                back_posi = (x - max * (agent.path[0][0]-agent.position[0]), y - max * (agent.path[0][1]-agent.position[1]))
+                neighbors.append([(x-max, y), (x+max, y), (x, y-max), (x, y+max)])
+                # 今追加したmaxから後方の選択肢を除外
+                if back_posi in neighbors[-1]:
+                    neighbors[-1].remove(back_posi)
+                    print("後方を削除!")
+                print(f"{max}での回避選択肢: {neighbors}")
+            
             for agent_2 in agents:
                 if not agent_2.path:
                     continue
@@ -207,24 +220,32 @@ def simulation(SIMU_COUNT):
                     # print(f"シミュレーション{s}の{agent.id}と{agent_2.id}が{(x, y)}で衝突の危機")
                     neighbors = [pos for pos in neighbors if pos != agent.path[0]] # 予定パスを除く
                     avoid = True
+            
             if not avoid:
+                del agent.path[:agent.speed] # 避けない場合、speed分ぎゅーん!!
                 continue
             # --- 移動範囲の制限 ---
-            can_neighbors = [
-                pos for pos in neighbors # neighborsの中から
-                if maze[pos[0]][pos[1]] != object_cost and # 壁でもない
-                not any(pos == a.position for a in agents) and# 他のエージェントがいない場所をピック
-                not any(pos == a.path[0] for a in agents if len(a.path)>0)
-            ]        
-            if can_neighbors:
-                new_position = can_neighbors[random.randint(0,len(can_neighbors)-1)] # neighborsからランダムに移動
-                agent.path = astar(maze, new_position, tuple(agent.goal))
-                # agent.path = agent.calc_path(maze)
-            else: # 動ける場所がない場合、停止
-                agent.path.insert(0, agent.position)
+            can_neighbors = []    
+            for neighbor_group in neighbors:    
+                for pos in neighbor_group:
+                    # print(pos)
+                    # neighborsからマップ外を除外
+                    if pos[0]<0 or pos[1]<0 or pos[0]>MAP_SIZE_Y-1 or pos[1]>MAP_SIZE_X-1:
+                        # print("範囲外")
+                        continue
+                    # 壁を除外
+                    if maze[pos[0]][pos[1]] != object_cost and not any(pos == a.position for a in agents) and not any(pos == a.path[0] for a in agents if len(a.path)>0):
+                        can_neighbors.append(pos)
+                if can_neighbors:
+                    new_position = can_neighbors[random.randint(0,len(can_neighbors)-1)] # neighborsからランダムに移動
+                    agent.path = astar(maze, new_position, tuple(agent.goal))
+                    break
+                    # agent.path = agent.calc_path(maze)
+                else: # 動ける場所がない場合、停止
+                    agent.path.insert(0, agent.position)
           
         # --- エージェント位置更新 ---
-        ag.futureImpactError(agents)
+        ag.futureImpactError(agents) # 衝突検知
         for agent in agents:
             # agent.path = agent.calc_path(maze) # 経路再計算
             if len(agent.path) < 1:
@@ -234,6 +255,8 @@ def simulation(SIMU_COUNT):
             ax.text(agent.position[1], agent.position[0], agent.id)
             ax.set_title(f"シミュレーション: {s}")
             result.append(agent.info())
+
+        # ag.agentStayMap(agents, maze)
 
         # --- 新規エージェント ---
         for i in range(BORN_AGENT_NUM):

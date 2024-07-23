@@ -1,3 +1,7 @@
+"""
+social foce
+"""
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.cm as cm # カラーマップ
