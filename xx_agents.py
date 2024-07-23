@@ -19,7 +19,7 @@ def futureImpactError(agents):
         pos for pos, count in Counter(next_positions).items() if count > 1
     ]
 
-    # 衝突地点とその地点でのエージェントIDを収集
+    # 衝突地点がkey, idがvalue
     impacts = {}
     for pos in impact_positions:
         colliding_agents = [next_ids[i] for i, p in enumerate(next_positions) if p == pos]

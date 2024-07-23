@@ -53,17 +53,27 @@ class Agent():
     def __init__(self, ID, init_x, init_y, goal_list, maze):
         self.id = ID
         self.position = [init_x, init_y]
-        self.goal = goal_list[random.randint(0, len(goal_list)-1)] # 改札ランダム設定
+        self.r = random.randint(0, len(goal_list)-1)
+        self.goal = goal_list[self.r] # 改札ランダム設定
         # self.path = self.calc_path(maze) # 経路list
         self.path = astar(maze, tuple(self.position), tuple(self.goal)) 
-        # self.color = cm.Spectral(float(self.id)/50.0) # カラーマップ指定
-        # --- テスト用 ---
-        if self.id%10==0:
+        if self.r == 0:
             self.color = "red"
-        elif self.id%13==0:
+        elif self.r == 1:
             self.color = "blue"
+        elif self.r == 2:
+            self.color = "green"
         else:
             self.color = "black"
+
+        # self.color = cm.Spectral(float(self.id)/50.0) # カラーマップ指定
+        # --- テスト用 ---
+        # if self.id%10==0:
+        #     self.color = "red"
+        # elif self.id%13==0:
+        #     self.color = "blue"
+        # else:
+        #     self.color = "black"
         # ---------------
     # --- 情報 ---
     def info(self):
@@ -241,7 +251,7 @@ def simulation(SIMU_COUNT):
         sca.scatman(ax, wall_list, goal_list, start_list, use_colors)
         # ------------
 
-    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=600, repeat=False)
+    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=1000, repeat=False)
     plt.show()
     # ani.save("xx.gif", writer="imagemagick")
     # --- 結果出力 ---
