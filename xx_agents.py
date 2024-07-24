@@ -37,15 +37,20 @@ def agentNowMap(agents, maze):
     agent_map = copy.deepcopy(maze)
     for agent in agents:
         agent_map[agent.position[0]][agent.position[1]] = agent.id
-    # return agent_map
-    print(agent_map)
+    return agent_map
 
 # --- エージェントのネクストマップ ---
 def agentNextMap(agents, maze):
     agent_next_map = copy.deepcopy(maze)
     for agent in agents:
-        if not agents.path:
+        if len(agent.path)<2:
             continue
-        agent_next_map[agent.path[0][0]][agent.path[0][1]] = agent.id
+        agent_next_map[agent.path[1][0]][agent.path[1][1]] = agent.id
     return agent_next_map
+
+# --- エージェントの周囲に人がいるか ---
+def agentNeighborChk(agent, maze):
+    
+
+    return None
 
