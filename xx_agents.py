@@ -40,17 +40,27 @@ def agentNowMap(agents, maze):
     return agent_map
 
 # --- エージェントのネクストマップ ---
-def agentNextMap(agents, maze):
+# def agentNextMap(agents, maze):
+#     agent_next_map = copy.deepcopy(maze)
+#     for agent in agents:
+#         if len(agent.path)<2:
+#             continue
+#         agent_next_map[agent.path[1][0]][agent.path[1][1]] = agent.id
+#     return agent_next_map
+
+# --- エージェントいるところにコスト ---
+def agentNextMap(agents, agent_id, object_cost, s, maze):
+    """
+    agents: エージェントクラスリスト
+    s: スピード
+    """
     agent_next_map = copy.deepcopy(maze)
     for agent in agents:
-        if len(agent.path)<2:
+        if len(agent.path)<s+1:
             continue
-        agent_next_map[agent.path[1][0]][agent.path[1][1]] = agent.id
+        # --- 同じエージェントを除く ---
+        if agent.id==agent_id:
+            continue
+        agent_next_map[agent.path[s][0]][agent.path[s][1]] = object_cost
     return agent_next_map
-
-# --- エージェントの周囲に人がいるか ---
-def agentNeighborChk(agent, maze):
-    
-
-    return None
 
