@@ -13,10 +13,10 @@ import xx_scattering as sca
 
 SIMU_COUNT = 200 # シミュレーション回数
 AGENT_NUM = 10 # 初期エージェント数
-# BORN_AGENT_NUM = 5 # 新規エージェント数
-# BORN_INTERVAL = 0.4 # エージェント生成間隔
-BORN_AGENT_NUM = 10 # 新規エージェント数
-BORN_INTERVAL = 0.8 # エージェント生成間隔
+BORN_AGENT_NUM = 5 # 新規エージェント数
+BORN_INTERVAL = 0.4 # エージェント生成間隔
+# BORN_AGENT_NUM = 10 # 新規エージェント数
+# BORN_INTERVAL = 0.8 # エージェント生成間隔
 MAP_SIZE_X = 80 # マップサイズ
 MAP_SIZE_Y = 40
 SPEED = 3 # エージェント最大速度

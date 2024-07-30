@@ -74,7 +74,7 @@ def getNeighbors(position, other_agents, maze, object_cost):
     (x, y) = position
     neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1), (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)]
     for index, next_position in enumerate(neighbors):
-        if((maze[next_position[0]][next_position[1]]==object_cost) or # 回避先に壁
+        if((maze[next_position[0]][next_position[1]]==object_cost) or # 回避先に壁 効いてない？
             next_position[0] < 0 or next_position[0] >= len(maze) or
             next_position[1] < 0 or next_position[1] >= len(maze[0])
             ):
