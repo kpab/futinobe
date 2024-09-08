@@ -208,7 +208,7 @@ def simulation(SIMU_COUNT):
             ax.scatter(l[1], l[0], s=200, marker=",", color=color_list[0])   
         # ------------
 
-    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=600, repeat=False)
+    ani = animation.FuncAnimation(fig, update, frames=SIMU_COUNT, interval=1000, repeat=False)
     plt.show()
     # ani.save("xx.gif", writer="imagemagick")
     # --- 結果出力 ---
