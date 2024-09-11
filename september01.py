@@ -1,5 +1,6 @@
 """
-pypy16を改造
+summer03.pyを改造
+- スピードの落とし方変更
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -99,22 +100,24 @@ class Agent():
         return astar(maze, tuple(self.position), tuple(self.goal))
 
     # --- 移動 ---
-    def move(self, people_map):  # pathリスト順に位置を更新
-        if people_map[self.position[0]][self.position[1]] > 1:  # 同じマスに一人以上いる場合
+    def move(self, next_people_map):  # pathリスト順に位置を更新
+        if len(self.path) <= self.speed:
+            self.position = self.goal
+            return
+
+        if next_people_map[self.path[self.speed][0]][self.path[self.speed][1]] > 1:  # 同じマスに一人以上いる場合
             # 衝突数更新
-            self.impact_count += people_map[self.position[0]
-                                            ][self.position[1]]-1
+            self.impact_count += next_people_map[self.path[self.speed][0]
+                                                 ][self.path[self.speed][1]]-1
             # 速度更新
-            self.speed = SPEED - people_map[self.position[0]][self.position[1]]
+            self.speed = SPEED - \
+                next_people_map[self.path[self.speed]
+                                [0]][self.path[self.speed][1]]
             if self.speed < 1:
                 self.speed = 1
-
-        if len(self.path) > self.speed:
-            for _ in range(self.speed):
-                next_position = self.path.pop(0)
+        for _ in range(self.speed):
+            next_position = self.path.pop(0)
             self.position = next_position
-        else:
-            self.position = self.goal
 
 
 class Node():
@@ -250,7 +253,8 @@ def simulation(SIMU_COUNT):
             # if len(agent.path) < 1:
             #     agents.remove(agent)
             people_map = ag.agentCountMap(agents, maze)
-            agent.move(people_map)
+            next_people_map = ag.agentNextCountMap(agents, maze)
+            agent.move(next_people_map)
             ax.scatter(agent.position[1], agent.position[0], c=agent.color)
             ax.text(agent.position[1], agent.position[0], agent.id)
             ax.set_title(f"シミュレーション: {s}")
