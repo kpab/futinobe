@@ -24,11 +24,13 @@ BORN_AGENT_NUM = 30  # 新規エージェント数
 BORN_INTERVAL = 0.8  # エージェント生成間隔
 MAP_SIZE_X = 80  # マップサイズ
 MAP_SIZE_Y = 40
-SPEED = 6  # エージェント最大速度
+SPEED = 4  # エージェント最大速度
 object_cost = 100  # 障害物のコスト
 color_list = xx_mycolor.color_list
 start_list = []
+start_list_2 = []
 goal_list = []
+goal_list_2 = []
 wall_list = []  # 障害物座標list
 result = []  # 結果記録用
 result_agents = []
@@ -48,13 +50,19 @@ class Map():
             for x in range(MAP_SIZE_X):
                 if self.map.iat[y, x] == "s":
                     start_list.append([y, x])
+                elif self.map.iat[y, x] == "s2":
+                    start_list_2.append([y, x])
                 elif self.map.iat[y, x] == "g":
                     goal_list.append([y, x])
+                elif self.map.iat[y, x] == "g2":
+                    goal_list_2.append([y, x])
                 elif self.map.iat[y, x] == "x":
                     wall_list.append([y, x])
         self.map = self.map.replace('x', object_cost)  # 壁にコスト
         self.map = self.map.replace('s', -1)  # マップにコスト
+        self.map = self.map.replace('s2', -1)
         self.map = self.map.replace('g', 1)  # マップにコスト
+        self.map = self.map.replace('g2', 1)
 
     def generate_map(self):
         self.map = self.map.values.tolist()  # dfをリスト変換
@@ -64,23 +72,28 @@ class Map():
 class Agent():
     """ エージェントクラス """
 
-    def __init__(self, ID, init_x, init_y, goal_list, maze):
+    def __init__(self, ID, init_x, init_y, goal_list, maze, agent_type):
         self.id = ID
         self.position = [init_x, init_y]
         self.r = random.randint(0, len(goal_list)-1)
         self.goal = goal_list[self.r]  # 改札ランダム設定
+        self.agent_type = agent_type  # 1:降りる, 2:乗る
         self.speed = SPEED
         self.path = astar(maze, tuple(self.position), tuple(self.goal))
         self.impact_count = 0  # 衝突数
         # --- color設定 ---
-        if self.r == 0:
+        if self.agent_type == 0:
             self.color = "red"
-        elif self.r == 1:
-            self.color = "blue"
-        elif self.r == 2:
-            self.color = "green"
         else:
-            self.color = "black"
+            self.color = "blue"
+        # if self.r == 0:
+        #     self.color = "red"
+        # elif self.r == 1:
+        #     self.color = "blue"
+        # elif self.r == 2:
+        #     self.color = "green"
+        # else:
+        #     self.color = "black"
         # self.color = cm.Spectral(float(self.id)/50.0) # カラーマップ指定
 
         # if self.id%10==0:
@@ -204,7 +217,6 @@ def simulation(SIMU_COUNT):
     sum_id = AGENT_NUM  # id合計
     result.append(f"最終更新: {datetime.datetime.now()}")
     # --- プロット設定 ---
-    # fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y), facecolor=color_list[random.randint(0,len(color_list)-1)])
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                            facecolor=xx_mycolor.Crandom())
     sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
@@ -212,6 +224,9 @@ def simulation(SIMU_COUNT):
     # --- マップ生成 ---
     map = Map()
     maze = map.generate_map()
+
+    start_lists = [start_list, start_list_2]
+    goal_lists = [goal_list, goal_list_2]
 
     # --- コスト図をログへ ---
     for m in maze:
@@ -221,15 +236,19 @@ def simulation(SIMU_COUNT):
     result.append(f"---------simulation:0------------")
     for i in range(AGENT_NUM):
         # --- 初期位置、目的の改札設定 ---
-        rs = random.randint(0, len(start_list)-1)
-        start_x, start_y = start_list[rs][0], start_list[rs][1]
-        agent = Agent(i, start_x, start_y, goal_list, maze)
+        agent_type = random.randint(0, 1)
+        now_start_list = start_lists[agent_type]
+        rs = random.randint(0, len(now_start_list)-1)
+        start_x, start_y = now_start_list[rs][0], now_start_list[rs][1]
+        agent = Agent(i, start_x, start_y,
+                      goal_lists[agent_type], maze, agent_type)
         agents.append(agent)
         ax.scatter(agent.position[1], agent.position[0], c=agent.color)
         ax.text(agent.position[1], agent.position[0], agent.id)
         result.append(agent.info())
     # --- 障害物の初期配置 ---
-    sca.scatman(ax, wall_list, goal_list, start_list, use_colors)
+    sca.scatman_v2(ax, wall_list, goal_list,
+                   goal_list_2, start_list, start_list_2)
 
     def update(frame):
         nonlocal s  # シミュレーションカウント
@@ -264,16 +283,20 @@ def simulation(SIMU_COUNT):
         for i in range(BORN_AGENT_NUM):
             if random.random() < BORN_INTERVAL:
                 # --- 初期位置、目的の改札設定 ---
-                rs = random.randint(0, len(start_list)-1)
-                start_x, start_y = start_list[rs][0], start_list[rs][1]
-                agent = Agent(sum_id, start_x, start_y, goal_list, maze)
+                agent_type = random.randint(0, 1)
+                now_start_list = start_lists[agent_type]
+                rs = random.randint(0, len(now_start_list)-1)
+                start_x, start_y = now_start_list[rs][0], now_start_list[rs][1]
+                agent = Agent(i, start_x, start_y,
+                              goal_lists[agent_type], maze, agent_type)
                 agents.append(agent)
                 ax.scatter(agent.position[1], agent.position[0])
                 ax.text(agent.position[1], agent.position[0], agent.id)
                 result.append(agent.info())
                 sum_id += 1
         # --- 障害物の再配置 ---
-        sca.scatman(ax, wall_list, goal_list, start_list, use_colors)
+        sca.scatman_v2(ax, wall_list, goal_list,
+                       goal_list_2, start_list, start_list_2)
         # ------------
 
     ani = animation.FuncAnimation(
