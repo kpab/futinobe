@@ -16,7 +16,7 @@ import xx_mycolor  # マイカラー
 import modules.Scattering as sca
 import copy
 
-SIMU_COUNT = 100  # シミュレーション回数
+SIMU_COUNT = 30  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
 # BORN_AGENT_NUM = 5  # 新規エージェント数
 # BORN_INTERVAL = 0.4  # エージェント生成間隔
@@ -86,22 +86,7 @@ class Agent():
             self.color = "red"
         else:
             self.color = "blue"
-        # if self.r == 0:
-        #     self.color = "red"
-        # elif self.r == 1:
-        #     self.color = "blue"
-        # elif self.r == 2:
-        #     self.color = "green"
-        # else:
-        #     self.color = "black"
-        # self.color = cm.Spectral(float(self.id)/50.0) # カラーマップ指定
 
-        # if self.id%10==0:
-        #     self.color = "red"
-        # elif self.id%13==0:
-        #     self.color = "blue"
-        # else:
-        #     self.color = "black"
         # ------------------
     # --- 情報 ---
     def info(self):
@@ -125,7 +110,7 @@ class Agent():
             # 速度更新
             self.speed = SPEED - \
                 next_people_map[self.path[self.speed]
-                                [0]][self.path[self.speed][1]]
+                                [0]][self.path[self.speed][1]]-1
             if self.speed < 1:
                 self.speed = 1
         for _ in range(self.speed):
@@ -208,7 +193,8 @@ def result_print(result_agents):
     for agent in result_agents:
         total_impact += agent.impact_count
     average_impact = total_impact/len(result_agents)
-    print(f"トータルインパクト: {total_impact}\nアベレージインパクト: {average_impact}")
+    print(
+        f"総脱出数：{len(result_agents)}\nトータルインパクト: {total_impact}\nアベレージインパクト: {average_impact}")
 
 
 # シミュ
@@ -271,7 +257,7 @@ def simulation(SIMU_COUNT):
                 continue
             # if len(agent.path) < 1:
             #     agents.remove(agent)
-            people_map = ag.agentCountMap(agents, maze)
+            # people_map = ag.agentCountMap(agents, maze)
             next_people_map = ag.agentNextCountMap(agents, maze)
             agent.move(next_people_map)
             ax.scatter(agent.position[1], agent.position[0], c=agent.color)
@@ -308,6 +294,7 @@ def simulation(SIMU_COUNT):
     with open("xxlog.txt", "w") as f:
         for line in result:
             print(line, file=f)
+
 
     # ---------------
 if __name__ == "__main__":
