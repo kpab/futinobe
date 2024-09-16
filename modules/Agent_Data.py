@@ -75,8 +75,8 @@ def getNeighbors(position, other_agents, maze, object_cost):
                  (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)]
     for index, next_position in enumerate(neighbors):
         if ((maze[next_position[0]][next_position[1]] == object_cost) or  # 回避先に壁 効いてない？
-                    next_position[0] < 0 or next_position[0] >= len(maze) or
-                    next_position[1] < 0 or next_position[1] >= len(maze[0])
+                next_position[0] < 0 or next_position[0] >= len(maze) or
+                next_position[1] < 0 or next_position[1] >= len(maze[0])
                 ):
             # neighbors.remove(next_position) # その回避地点を除外
             neighbors.pop(index)
@@ -149,3 +149,11 @@ def agentNextCountMap(agents, maze):
                             ][agent.path[agent.speed-1][1]] += 1
             # print(agent.path[agent.speed-1][0])
     return next_people_map
+
+
+# エージェントの衝突数更新（現在の被り）
+def agentImpactUpdate(agents, maze):
+    # 現在のセル毎の人数把握
+    now_map = agentCountMap(agents, maze)
+    for agent in agents:
+        agent.impact_count += now_map[agent.position[0]][agent.position[1]]-1

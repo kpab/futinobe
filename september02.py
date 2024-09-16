@@ -104,9 +104,6 @@ class Agent():
             return
 
         if next_people_map[self.path[self.speed][0]][self.path[self.speed][1]] > 1:  # 同じマスに一人以上いる場合
-            # 衝突数更新
-            self.impact_count += next_people_map[self.path[self.speed][0]
-                                                 ][self.path[self.speed][1]]-1
             # 速度更新
             self.speed = SPEED - \
                 next_people_map[self.path[self.speed]
@@ -229,7 +226,10 @@ def simulation(SIMU_COUNT):
         start_x, start_y = now_start_list[rs][0], now_start_list[rs][1]
         agent = Agent(i, start_x, start_y,
                       goal_lists[agent_type], maze, agent_type)
-        agents.append(agent)
+        now_map = ag.agentNowMap(agents, maze)
+        if now_map[agent.position[0]][agent.position[1]] < 2:
+            agents.append(agent)
+
         ax.scatter(agent.position[1], agent.position[0], c=agent.color)
         ax.text(agent.position[1], agent.position[0], agent.id)
         result.append(agent.info())
@@ -256,11 +256,10 @@ def simulation(SIMU_COUNT):
                 result_agents.append(agent)
                 agents.remove(agent)
                 continue
-            # if len(agent.path) < 1:
-            #     agents.remove(agent)
-            # people_map = ag.agentCountMap(agents, maze)
+
             next_people_map = ag.agentNextCountMap(agents, maze)
             agent.move(next_people_map)
+            ag.agentImpactUpdate(agents, maze)
             ax.scatter(agent.position[1], agent.position[0], c=agent.color)
             ax.text(agent.position[1], agent.position[0], agent.id)
             ax.set_title(f"シミュレーション: {s}")
@@ -276,7 +275,9 @@ def simulation(SIMU_COUNT):
                 start_x, start_y = now_start_list[rs][0], now_start_list[rs][1]
                 agent = Agent(i, start_x, start_y,
                               goal_lists[agent_type], maze, agent_type)
-                agents.append(agent)
+                now_map = ag.agentNowMap(agents, maze)
+                if now_map[agent.position[0]][agent.position[1]] < 2:
+                    agents.append(agent)
                 ax.scatter(agent.position[1], agent.position[0])
                 ax.text(agent.position[1], agent.position[0], agent.id)
                 result.append(agent.info())
@@ -295,6 +296,7 @@ def simulation(SIMU_COUNT):
     with open("xxlog.txt", "w") as f:
         for line in result:
             print(line, file=f)
+
 
     # ---------------
 if __name__ == "__main__":
