@@ -1,5 +1,5 @@
 """
-summer03.pyを改造
+september01.pyを改造
 - スピードの落とし方変更
 """
 import matplotlib.pyplot as plt
@@ -42,7 +42,7 @@ class Map():
 
     def __init__(self, object_cost=object_cost):
         # self.map = pd.read_excel('Map.xlsx', sheet_name=2)
-        self.map = pd.read_excel('Map.xlsx', sheet_name=3)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=4)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
