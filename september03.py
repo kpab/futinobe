@@ -1,6 +1,7 @@
 """
-september01.pyを改造
-- スピードの落とし方変更
+september02.pyを改造
+- 減速数をカウント
+- A* → ダイクストラ
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -42,8 +43,7 @@ class Map():
 
     def __init__(self, object_cost=object_cost):
         # self.map = pd.read_excel('Map.xlsx', sheet_name=2)
-        self.map = pd.read_excel('Map.xlsx', sheet_name=7)
-        self.map = pd.read_excel('Map.xlsx', sheet_name=7)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=4)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
@@ -60,8 +60,10 @@ class Map():
                 elif self.map.iat[y, x] == "x":
                     wall_list.append([y, x])
         self.map = self.map.replace('x', object_cost)  # 壁にコスト
-        self.map = self.map.replace('s', -1)  # マップにコスト
-        self.map = self.map.replace('s2', -1)
+        # self.map = self.map.replace('s', -1)  # マップにコスト
+        # self.map = self.map.replace('s2', -1)
+        self.map = self.map.replace('s', 1)  # マップにコスト
+        self.map = self.map.replace('s2', 1)
         self.map = self.map.replace('g', 1)  # マップにコスト
         self.map = self.map.replace('g2', 1)
 
@@ -70,9 +72,7 @@ class Map():
         return self.map
 
 
-class Agent():
-    """ エージェントクラス """
-
+class Agent:
     def __init__(self, ID, init_x, init_y, goal_list, maze, agent_type):
         self.id = ID
         self.position = [init_x, init_y]
@@ -80,23 +80,26 @@ class Agent():
         self.goal = goal_list[self.r]  # 改札ランダム設定
         self.agent_type = agent_type  # 0:降りる, 1:乗る
         self.speed = SPEED
-        self.path = astar(maze, tuple(self.position), tuple(self.goal))
+        graph = convert_to_adj_list(maze)  # グラフ形式に変換
+        self.path = dijkstra(graph, tuple(self.position), tuple(self.goal))
         self.impact_count = 0  # 衝突数
+        self.slow_count = 0  # 減速数
         # --- color設定 ---
         if self.agent_type == 0:
             self.color = "red"
         else:
             self.color = "blue"
-
         # ------------------
     # --- 情報 ---
+
     def info(self):
         return f"ID:{self.id}\n現在地:{self.position}\n改札:{self.goal}\n経路:{self.path}\n衝突数:{self.impact_count}"
 
     # --- 経路探索 ---
     def calc_path(self, maze):
         # タプルにしないと動かない
-        return astar(maze, tuple(self.position), tuple(self.goal))
+        # return astar(maze, tuple(self.position), tuple(self.goal))
+        return dijkstra(maze, tuple(self.position), tuple(self.goal))
 
     # --- 移動 ---
     def move(self, next_people_map):  # pathリスト順に位置を更新
@@ -105,6 +108,9 @@ class Agent():
             return
 
         if next_people_map[self.path[self.speed][0]][self.path[self.speed][1]] > 1:  # 同じマスに一人以上いる場合
+            # 減速数更新
+            self.slow_count -= next_people_map[self.path[self.speed]
+                                               [0]][self.path[self.speed][1]]-1
             # 速度更新
             self.speed = SPEED - \
                 next_people_map[self.path[self.speed]
@@ -185,15 +191,70 @@ def add_to_open(open_list, neighbor):
     return True
 
 
+# --- ダイクストラ ---
+def dijkstra(graph, start, end):
+    distances = {node: float('infinity') for node in graph}
+    distances[start] = 0
+    queue = [(0, start)]
+    prev_nodes = {start: None}  # 各ノードの親ノードを記録する辞書
+
+    while queue:
+        current_distance, current_node = heapq.heappop(queue)
+
+        if current_node == end:
+            # 経路を再構築
+            path = []
+            while current_node is not None:
+                path.append(current_node)
+                current_node = prev_nodes.get(current_node)
+            return path[::-1]  # 経路を逆順にして返す
+
+        if distances[current_node] < current_distance:
+            continue
+
+        for neighbor, weight in graph.get(current_node, {}).items():
+            distance = current_distance + weight
+
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                prev_nodes[neighbor] = current_node
+                heapq.heappush(queue, (distance, neighbor))
+
+    return None
+
+
+def convert_to_adj_list(maze):
+    adj_list = {}
+    rows = len(maze)
+    cols = len(maze[0])
+
+    for r in range(rows):
+        for c in range(cols):
+            node = (r, c)
+            if maze[r][c] == object_cost:
+                continue  # 障害物ノードをスキップ
+            neighbors = {}
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < rows and 0 <= nc < cols:
+                    neighbor = (nr, nc)
+                    if maze[nr][nc] != object_cost:
+                        neighbors[neighbor] = 1  # 隣接ノードとの重みを設定
+            adj_list[node] = neighbors
+    return adj_list
+
+
 # 結果出力
 def result_print(result_agents):
     total_impact = 0
+    total_slow = 0
     average_impact = 0
     for agent in result_agents:
         total_impact += agent.impact_count
+        total_slow += agent.slow_count
     average_impact = total_impact/len(result_agents)
     print(
-        f"総脱出数：{len(result_agents)}\nトータルインパクト: {total_impact}\nアベレージインパクト: {average_impact}")
+        f"総脱出数：{len(result_agents)}\n総減速数: {total_slow}\nトータルインパクト: {total_impact}\nアベレージインパクト: {average_impact}\nアベレージスロウ: {total_slow/len(result_agents)}")
 
 
 # シミュ
@@ -301,7 +362,6 @@ def simulation(SIMU_COUNT):
     with open("xxlog.txt", "w") as f:
         for line in result:
             print(line, file=f)
-
 
     # ---------------
 if __name__ == "__main__":
