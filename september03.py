@@ -234,7 +234,7 @@ def convert_to_adj_list(maze):
             if maze[r][c] == object_cost:
                 continue  # 障害物ノードをスキップ
             neighbors = {}
-            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1), (1, 1), (-1, -1)]:
                 nr, nc = r + dr, c + dc
                 if 0 <= nr < rows and 0 <= nc < cols:
                     neighbor = (nr, nc)
