@@ -16,15 +16,15 @@ import xx_mycolor  # マイカラー
 import modules.Scattering as sca
 import copy
 
-SIMU_COUNT = 30  # シミュレーション回数
+SIMU_COUNT = 100  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
 # BORN_AGENT_NUM = 5  # 新規エージェント数
 # BORN_INTERVAL = 0.4  # エージェント生成間隔
-BORN_AGENT_NUM = 30  # 新規エージェント数
+BORN_AGENT_NUM = 20  # 新規エージェント数
 BORN_INTERVAL = 0.8  # エージェント生成間隔
 MAP_SIZE_X = 80  # マップサイズ
 MAP_SIZE_Y = 40
-SPEED = 4  # エージェント最大速度
+SPEED = 3  # エージェント最大速度
 object_cost = 100  # 障害物のコスト
 color_list = xx_mycolor.color_list
 start_list = []
@@ -42,7 +42,7 @@ class Map():
 
     def __init__(self, object_cost=object_cost):
         # self.map = pd.read_excel('Map.xlsx', sheet_name=2)
-        self.map = pd.read_excel('Map.xlsx', sheet_name=4)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=6)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
@@ -229,6 +229,8 @@ def simulation(SIMU_COUNT):
         now_map = ag.agentNowMap(agents, maze)
         if now_map[agent.position[0]][agent.position[1]] < 2:
             agents.append(agent)
+        else:
+            sum_id -= 1
 
         ax.scatter(agent.position[1], agent.position[0], c=agent.color)
         ax.text(agent.position[1], agent.position[0], agent.id)
@@ -248,7 +250,7 @@ def simulation(SIMU_COUNT):
         ax.set_title(f"simu: {s}")
         ax.clear()  # 前のフレームのエージェントをクリア
         sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
-
+        ag.agentImpactUpdate(agents, maze)
         # --- エージェント位置更新 ---
         for agent in agents:
             # --- ゴール済みエージェントの削除 ---
@@ -259,7 +261,7 @@ def simulation(SIMU_COUNT):
 
             next_people_map = ag.agentNextCountMap(agents, maze)
             agent.move(next_people_map)
-            ag.agentImpactUpdate(agents, maze)
+
             ax.scatter(agent.position[1], agent.position[0], c=agent.color)
             ax.text(agent.position[1], agent.position[0], agent.id)
             ax.set_title(f"シミュレーション: {s}")
@@ -273,11 +275,13 @@ def simulation(SIMU_COUNT):
                 now_start_list = start_lists[agent_type]
                 rs = random.randint(0, len(now_start_list)-1)
                 start_x, start_y = now_start_list[rs][0], now_start_list[rs][1]
-                agent = Agent(i, start_x, start_y,
+                agent = Agent(sum_id+i, start_x, start_y,
                               goal_lists[agent_type], maze, agent_type)
                 now_map = ag.agentNowMap(agents, maze)
                 if now_map[agent.position[0]][agent.position[1]] < 2:
                     agents.append(agent)
+                else:
+                    sum_id -= 1
                 ax.scatter(agent.position[1], agent.position[0])
                 ax.text(agent.position[1], agent.position[0], agent.id)
                 result.append(agent.info())
