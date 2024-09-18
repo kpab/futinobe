@@ -77,7 +77,7 @@ def getNeighbors(position, other_agents, maze, object_cost):
         if ((maze[next_position[0]][next_position[1]] == object_cost) or  # 回避先に壁 効いてない？
                 next_position[0] < 0 or next_position[0] >= len(maze) or
                 next_position[1] < 0 or next_position[1] >= len(maze[0])
-                ):
+            ):
             # neighbors.remove(next_position) # その回避地点を除外
             neighbors.pop(index)
             continue
@@ -142,12 +142,11 @@ def agentNextCountMap(agents, maze):
             if next_people_map[y][x] != 0:
                 next_people_map[y][x] = 0
     for agent in agents:
-        if len(agent.path) < agent.speed:
+        if len(agent.path) < agent.speed:  # ゴールを除外
             pass
-        elif agent.speed > 0:
+        else:
             next_people_map[agent.path[agent.speed-1][0]
                             ][agent.path[agent.speed-1][1]] += 1
-            # print(agent.path[agent.speed-1][0])
     return next_people_map
 
 

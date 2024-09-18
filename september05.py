@@ -1,11 +1,15 @@
 """
-september03.pyを改造
-- スピード0の実装→やっぱなし
-- バグ修正したい：減速数が増えない点、IDが変
+september04.pyを改造
+- バグ修正したい:減速数が増えない点、IDが変
+- エージェント並び替えたい
+- 淵野辺民のバリエーション増やす
+- 乗客の色合いをスタート地点毎に変える
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.cm as cm  # カラーマップ
+from matplotlib import colormaps
+from cmap import Colormap
 import japanize_matplotlib
 import numpy as np
 import pandas as pd
@@ -16,8 +20,9 @@ import modules.Agent_Data as ag
 import xx_mycolor  # マイカラー
 import modules.Scattering as sca
 import copy
+from operator import attrgetter
 
-SIMU_COUNT = 30  # シミュレーション回数
+SIMU_COUNT = 100  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
 BORN_AGENT_NUM = 30  # 新規エージェント数
 BORN_INTERVAL = 0.8  # エージェント生成間隔
@@ -30,8 +35,10 @@ start_list = []
 start_list_2 = []
 goal_list = []
 goal_list_2 = []
+mix_list = []  # スタート地点かつゴール地点
 wall_list = []  # 障害物座標list
 result = []  # 結果記録用
+agents = []
 result_agents = []
 total_slow = 0
 use_colors = xx_mycolor.CrandomList(3)
@@ -41,8 +48,7 @@ class Map():
     """ マップ作りまーす """
 
     def __init__(self, object_cost=object_cost):
-        # self.map = pd.read_excel('Map.xlsx', sheet_name=2)
-        self.map = pd.read_excel('Map.xlsx', sheet_name=6)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=9)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
@@ -50,19 +56,31 @@ class Map():
             for x in range(MAP_SIZE_X):
                 if self.map.iat[y, x] == "s":
                     start_list.append([y, x])
+                elif self.map.iat[y, x] == "s1":
+                    start_list.append([y, x])
                 elif self.map.iat[y, x] == "s2":
                     start_list_2.append([y, x])
                 elif self.map.iat[y, x] == "g":
                     goal_list.append([y, x])
+                elif self.map.iat[y, x] == "g1":
+                    goal_list.append([y, x])
                 elif self.map.iat[y, x] == "g2":
                     goal_list_2.append([y, x])
+                elif self.map.iat[y, x] == "s2g1":
+                    goal_list.append([y, x])
+                    start_list_2.append([y, x])
+                    mix_list.append([y, x])
                 elif self.map.iat[y, x] == "x":
                     wall_list.append([y, x])
+
         self.map = self.map.replace('x', object_cost)  # 壁にコスト
         self.map = self.map.replace('s', 1)  # マップにコスト
+        self.map = self.map.replace('s1', 1)
         self.map = self.map.replace('s2', 1)
         self.map = self.map.replace('g', 1)  # マップにコスト
+        self.map = self.map.replace('g1', 1)
         self.map = self.map.replace('g2', 1)
+        self.map = self.map.replace('s2g1', 1)
 
     def generate_map(self):
         self.map = self.map.values.tolist()  # dfをリスト変換
@@ -81,11 +99,16 @@ class Agent:
         self.path = dijkstra(graph, tuple(self.position), tuple(self.goal))
         self.impact_count = 0  # 衝突数
         self.slow_count = 0  # 減速数
+
+        self.color_num = init_y/80
+
+        colormap = plt.get_cmap("ocean")
+        N = self.position[1]
         # --- color設定 ---
         if self.agent_type == 0:
             self.color = "red"
         else:
-            self.color = "blue"
+            self.color = colormap(self.color_num)
         # ------------------
     # --- 情報 ---
 
@@ -212,7 +235,6 @@ def simulation(SIMU_COUNT):
     for m in maze:
         result.append(m)
     # --- エージェント初期配置 ---
-    agents = []
     result.append(f"---------simulation:0------------")
     for i in range(AGENT_NUM):
         # --- 初期位置、目的の改札設定 ---
@@ -233,13 +255,14 @@ def simulation(SIMU_COUNT):
         result.append(agent.info())
     # --- 障害物の初期配置 ---
     sca.scatman_v2(ax, wall_list, goal_list,
-                   goal_list_2, start_list, start_list_2)
+                   goal_list_2, start_list, start_list_2, mix_list)
 
     def update(frame):
         nonlocal s  # シミュレーションカウント
         nonlocal sum_id
         s += 1
         global result
+        global agents
         result.append(f"---------simu: {s}------------")
         print("simu: ", s)
         # ------------------------------
@@ -247,6 +270,9 @@ def simulation(SIMU_COUNT):
         ax.clear()  # 前のフレームのエージェントをクリア
         sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
         ag.agentImpactUpdate(agents, maze)
+
+        agents = sorted(agents, key=lambda x: x.id)
+
         # --- エージェント位置更新 ---
         for agent in agents:
             # --- ゴール済みエージェントの削除 ---
@@ -284,7 +310,7 @@ def simulation(SIMU_COUNT):
                 sum_id += 1
         # --- 障害物の再配置 ---
         sca.scatman_v2(ax, wall_list, goal_list,
-                       goal_list_2, start_list, start_list_2)
+                       goal_list_2, start_list, start_list_2, mix_list)
         # ------------
 
     ani = animation.FuncAnimation(
@@ -296,6 +322,7 @@ def simulation(SIMU_COUNT):
     with open("xxlog.txt", "w") as f:
         for line in result:
             print(line, file=f)
+
 
     # ---------------
 if __name__ == "__main__":
