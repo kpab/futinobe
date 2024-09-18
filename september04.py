@@ -111,6 +111,8 @@ class Agent:
             # 減速数更新
             self.slow_count += next_people_map[self.path[self.speed]
                                                [0]][self.path[self.speed][1]]-1
+            print(
+                f"{self.id}のslow_count: {next_people_map[self.path[self.speed][0]][self.path[self.speed][1]]-1}追加されて現在{self.slow_count}")
             # 速度更新
             self.speed = SPEED - \
                 next_people_map[self.path[self.speed]
@@ -364,7 +366,6 @@ def simulation(SIMU_COUNT):
     with open("xxlog.txt", "w") as f:
         for line in result:
             print(line, file=f)
-
 
     # ---------------
 if __name__ == "__main__":
