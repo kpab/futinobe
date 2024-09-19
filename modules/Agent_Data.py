@@ -75,8 +75,8 @@ def getNeighbors(position, other_agents, maze, object_cost):
                  (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)]
     for index, next_position in enumerate(neighbors):
         if ((maze[next_position[0]][next_position[1]] == object_cost) or  # 回避先に壁 効いてない？
-                next_position[0] < 0 or next_position[0] >= len(maze) or
-                next_position[1] < 0 or next_position[1] >= len(maze[0])
+            next_position[0] < 0 or next_position[0] >= len(maze) or
+            next_position[1] < 0 or next_position[1] >= len(maze[0])
             ):
             # neighbors.remove(next_position) # その回避地点を除外
             neighbors.pop(index)
@@ -156,3 +156,19 @@ def agentImpactUpdate(agents, maze):
     now_map = agentCountMap(agents, maze)
     for agent in agents:
         agent.impact_count += now_map[agent.position[0]][agent.position[1]]-1
+
+
+# エージェント総数マップのリセット(0で初期化)
+def resetTotalAgentMap(maze):
+    totalAgentMap = copy.deepcopy(maze)
+    for y in range(len(totalAgentMap)):
+        for x in range(len(totalAgentMap[0])):
+            if totalAgentMap[y][x] != 0:
+                totalAgentMap[y][x] = 0
+    return totalAgentMap
+
+
+# エージェント総数マップの更新
+def updateAgentTotalMap(agents, total_agent_map):
+    for agent in agents:
+        total_agent_map[agent.position[0]][agent.position[1]] += 1
