@@ -1,6 +1,6 @@
 """
-september06.pyを改造
-- ヒートマップを表示
+september07.pyを改造
+- ヒートマップの色分け
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -207,7 +207,6 @@ def result_print(result_agents):
     for agent in result_agents:
         total_impact += agent.impact_count
         total_slow += agent.slow_count
-        print(agent.info())
     average_impact = total_impact/len(result_agents)
     # print(
     #     f"総脱出数：{len(result_agents)}\n総減速数: {total_slow}\nトータルインパクト: {total_impact}\nアベレージインパクト: {round(average_impact,1)}\nアベレージスロウ: {round(total_slow/len(result_agents),1)}")
@@ -227,7 +226,9 @@ def simulation(SIMU_COUNT):
     map = Map()
     maze = map.generate_map()
 
-    total_agent_map = ag.resetTotalAgentMap(maze)
+    total_map = ag.resetTotalAgentMap(maze)
+    red_map = ag.resetTotalAgentMap(maze)
+    blue_map = ag.resetTotalAgentMap(maze)
 
     start_lists = [start_list, start_list_2]
     goal_lists = [goal_list, goal_list_2]
@@ -273,7 +274,8 @@ def simulation(SIMU_COUNT):
         ax.clear()  # 前のフレームのエージェントをクリア
         sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
         ag.agentImpactUpdate(agents, maze)
-        ag.updateAgentTotalMap(agents, total_agent_map)
+        # ag.updateAgentTotalMap(agents, total_agent_map)
+        ag.updateAgentTotalMapRB(agents, total_map, red_map, blue_map)
 
         agents = sorted(agents, key=lambda x: x.id)
 
@@ -329,16 +331,28 @@ def simulation(SIMU_COUNT):
         for line in result:
             print(line, file=f)
 
-    heatMapping(total_agent_map)
+    heatMapping(total_map, red_map, blue_map)
 
 
 # ヒートマップ
-def heatMapping(total_agent_map):
+def heatMapping(total_map, red_map, blue_map):
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                            facecolor=xx_mycolor.Crandom())
-    sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
-    sns.heatmap(total_agent_map)
+    # sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
+    sns.heatmap(total_map, cmap='cool', square=True)
     sca.scatman_heatver(ax, wall_list)
+    plt.show()
+    fig, ax1 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
+                            facecolor=xx_mycolor.Crandom())
+    # sca.mapping_set(ax1, MAP_SIZE_X, MAP_SIZE_Y)
+    sns.heatmap(red_map, cmap='Reds', square=True)
+    sca.scatman_heatver(ax1, wall_list)
+    plt.show()
+    fig, ax2 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
+                            facecolor=xx_mycolor.Crandom())
+    # sca.mapping_set(ax2, MAP_SIZE_X, MAP_SIZE_Y)
+    sns.heatmap(blue_map, cmap='Blues', square=True)
+    sca.scatman_heatver(ax2, wall_list)
     plt.show()
 
     # ---------------

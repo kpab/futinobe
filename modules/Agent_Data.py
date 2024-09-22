@@ -172,3 +172,13 @@ def resetTotalAgentMap(maze):
 def updateAgentTotalMap(agents, total_agent_map):
     for agent in agents:
         total_agent_map[agent.position[0]][agent.position[1]] += 1
+
+
+# エージェント総数マップの更新(乗客の種別で分ける)
+def updateAgentTotalMapRB(agents, total_map, red_map, blue_map):
+    for agent in agents:
+        total_map[agent.position[0]][agent.position[1]] += 1
+        if agent.agent_type == 0:
+            red_map[agent.position[0]][agent.position[1]] += 1
+        elif agent.agent_type == 1:
+            blue_map[agent.position[0]][agent.position[1]] += 1
