@@ -1,7 +1,6 @@
 """
-september05.pyを改造
-- マップを表示
-- 番号無しエージェントver.
+september06.pyを改造
+- ヒートマップを表示
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -19,6 +18,7 @@ import xx_mycolor  # マイカラー
 import modules.Scattering as sca
 import copy
 from operator import attrgetter
+import seaborn as sns
 
 SIMU_COUNT = 20  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
@@ -337,12 +337,9 @@ def heatMapping(total_agent_map):
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                            facecolor=xx_mycolor.Crandom())
     sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
+    sns.heatmap(total_agent_map)
     sca.scatman_v2(ax, wall_list, goal_list,
                    goal_list_2, start_list, start_list_2, mix_list)
-    for y in range(MAP_SIZE_Y):
-        for x in range(MAP_SIZE_X):
-            ax.text(x, y, total_agent_map[y][x], horizontalalignment="center",
-                    verticalalignment="center")
     plt.show()
 
     # ---------------
