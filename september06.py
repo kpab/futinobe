@@ -20,7 +20,7 @@ import modules.Scattering as sca
 import copy
 from operator import attrgetter
 
-SIMU_COUNT = 100  # シミュレーション回数
+SIMU_COUNT = 20  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
 BORN_AGENT_NUM = 30  # 新規エージェント数
 BORN_INTERVAL = 0.8  # エージェント生成間隔
@@ -209,8 +209,8 @@ def result_print(result_agents):
         total_slow += agent.slow_count
         print(agent.info())
     average_impact = total_impact/len(result_agents)
-    print(
-        f"総脱出数：{len(result_agents)}\n総減速数: {total_slow}\nトータルインパクト: {total_impact}\nアベレージインパクト: {round(average_impact,1)}\nアベレージスロウ: {round(total_slow/len(result_agents),1)}")
+    # print(
+    #     f"総脱出数：{len(result_agents)}\n総減速数: {total_slow}\nトータルインパクト: {total_impact}\nアベレージインパクト: {round(average_impact,1)}\nアベレージスロウ: {round(total_slow/len(result_agents),1)}")
 
 
 # シミュ
@@ -273,6 +273,7 @@ def simulation(SIMU_COUNT):
         ax.clear()  # 前のフレームのエージェントをクリア
         sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
         ag.agentImpactUpdate(agents, maze)
+        ag.updateAgentTotalMap(agents, total_agent_map)
 
         agents = sorted(agents, key=lambda x: x.id)
 
@@ -335,13 +336,18 @@ def simulation(SIMU_COUNT):
 def heatMapping(total_agent_map):
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                            facecolor=xx_mycolor.Crandom())
+    sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
     sca.scatman_v2(ax, wall_list, goal_list,
                    goal_list_2, start_list, start_list_2, mix_list)
-
+    for y in range(MAP_SIZE_Y):
+        for x in range(MAP_SIZE_X):
+            ax.text(x, y, total_agent_map[y][x], horizontalalignment="center",
+                    verticalalignment="center")
+    plt.show()
 
     # ---------------
 if __name__ == "__main__":
-    bool_agText = input("テキストを表示しない場合は何か入力")
+    bool_agText = input("テキストを表示しない場合は何か入力: ")
     if bool_agText:
         agent_text_on = False
     simulation(SIMU_COUNT)
