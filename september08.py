@@ -20,7 +20,7 @@ import copy
 from operator import attrgetter
 import seaborn as sns
 
-SIMU_COUNT = 20  # シミュレーション回数
+SIMU_COUNT = 40  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
 BORN_AGENT_NUM = 30  # 新規エージェント数
 BORN_INTERVAL = 0.8  # エージェント生成間隔
