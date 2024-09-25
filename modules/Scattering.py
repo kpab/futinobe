@@ -25,7 +25,7 @@ def scatman(ax, wall_list, goal_list, start_list, use_colors):
 
 
 # 壁, ゴール, スタートの描画ver.2
-def scatman_v2(ax, wall_list, goal_list, goal_list_2, start_list, start_list_2, mix_list):
+def scatman_v2(ax, wall_list, goal_list, goal_list_2, start_list, start_list_2, mix_list, mix_list_2):
     for w in wall_list:
         ax.scatter(w[1], w[0], s=100, marker=",", c="green")
     for g in goal_list:
@@ -38,6 +38,8 @@ def scatman_v2(ax, wall_list, goal_list, goal_list_2, start_list, start_list_2, 
         ax.scatter(l[1], l[0], s=100, marker=",", c="blue")
     for m in mix_list:
         ax.scatter(m[1], m[0], s=60, marker="$❤️$", c="red")
+    for m in mix_list_2:
+        ax.scatter(m[1], m[0], s=60, marker="$❤️$", c="blue")
 
 
 # ヒートマップ用(壁だけ黒潰し)
