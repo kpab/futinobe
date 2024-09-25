@@ -45,4 +45,4 @@ def scatman_v2(ax, wall_list, goal_list, goal_list_2, start_list, start_list_2, 
 # ヒートマップ用(壁だけ黒潰し)
 def scatman_heatver(ax, wall_list):
     for w in wall_list:
-        ax.scatter(w[1], w[0], marker=",", c="black")
+        ax.scatter(w[1]+0.5, w[0]+0.5, marker=",", c="black")

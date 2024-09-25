@@ -1,6 +1,7 @@
 """
 september08.pyを改造
-- ヒートマップの色分け
+- マップのs1g2の追加
+- 淵野辺民 & その他の割合の制御
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -20,13 +21,14 @@ import copy
 from operator import attrgetter
 import seaborn as sns
 
-SIMU_COUNT = 40  # シミュレーション回数
+SIMU_COUNT = 20  # シミュレーション回数
 AGENT_NUM = 10  # 初期エージェント数
-BORN_AGENT_NUM = 30  # 新規エージェント数
-BORN_INTERVAL = 0.8  # エージェント生成間隔
+BORN_AGENT_NUM = 20  # 新規エージェント数
+HUTINOBE_BORN_RATE = 0.2
+BORN_INTERVAL = 1.0  # エージェント生成間隔
 MAP_SIZE_X = 80  # マップサイズ
 MAP_SIZE_Y = 40
-SPEED = 3  # エージェント最大速度
+SPEED = 2  # エージェント最大速度
 object_cost = 100  # 障害物のコスト
 color_list = xx_mycolor.color_list
 start_list = []
@@ -85,6 +87,7 @@ class Map():
         self.map = self.map.replace('g1', 1)
         self.map = self.map.replace('g2', 1)
         self.map = self.map.replace('s2g1', 1)
+        self.map = self.map.replace('s1g2', 1)
 
     def generate_map(self):
         self.map = self.map.values.tolist()  # dfをリスト変換
@@ -305,7 +308,8 @@ def simulation(SIMU_COUNT):
         for i in range(BORN_AGENT_NUM):
             if random.random() < BORN_INTERVAL:
                 # --- 初期位置、目的の改札設定 ---
-                agent_type = random.randint(0, 1)
+                # agent_type = random.randint(0, 1)
+                agent_type = 0 if random.random() < HUTINOBE_BORN_RATE else 1
                 now_start_list = start_lists[agent_type]
                 rs = random.randint(0, len(now_start_list)-1)
                 start_x, start_y = now_start_list[rs][0], now_start_list[rs][1]
@@ -343,23 +347,24 @@ def simulation(SIMU_COUNT):
 def heatMapping(total_map, red_map, blue_map):
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                            facecolor=xx_mycolor.Crandom())
-    # sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
+    ax.set_title("全体ヒートマップ")
     sns.heatmap(total_map, cmap='cool', square=True)
     sca.scatman_heatver(ax, wall_list)
+
     plt.show()
     fig, ax1 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                             facecolor=xx_mycolor.Crandom())
-    # sca.mapping_set(ax1, MAP_SIZE_X, MAP_SIZE_Y)
+    ax1.set_title("淵野辺民ヒートマップ")
     sns.heatmap(red_map, cmap='Reds', square=True)
     sca.scatman_heatver(ax1, wall_list)
+
     plt.show()
     fig, ax2 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                             facecolor=xx_mycolor.Crandom())
-    # sca.mapping_set(ax2, MAP_SIZE_X, MAP_SIZE_Y)
+    ax2.set_title("その他ヒートマップ")
     sns.heatmap(blue_map, cmap='Blues', square=True)
     sca.scatman_heatver(ax2, wall_list)
     plt.show()
-
 
     # ---------------
 if __name__ == "__main__":
