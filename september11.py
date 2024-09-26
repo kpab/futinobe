@@ -50,7 +50,7 @@ class Map():
     """ マップ作りまーす """
 
     def __init__(self, object_cost=object_cost):
-        self.map = pd.read_excel('Map.xlsx', sheet_name=10)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=11)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
