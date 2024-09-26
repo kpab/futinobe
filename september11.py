@@ -1,6 +1,6 @@
 """
-september09.pyを改造
-- エージェントのカウントを追加
+september10.pyを改造
+- 結果記録用
 """
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -20,15 +20,15 @@ import copy
 from operator import attrgetter
 import seaborn as sns
 
-SIMU_COUNT = 120  # シミュレーション回数
-SKIP_SIMU_COUNT = 20
+SIMU_COUNT = 260  # シミュレーション回数
+SKIP_SIMU_COUNT = 60
 AGENT_NUM = 10  # 初期エージェント数
-BORN_AGENT_NUM = 20  # 新規エージェント数
+BORN_AGENT_NUM = 30  # 新規エージェント数
 HUTINOBE_BORN_RATE = 0.2
 BORN_INTERVAL = 1.0  # エージェント生成間隔
 MAP_SIZE_X = 80  # マップサイズ
 MAP_SIZE_Y = 40
-SPEED = 2  # エージェント最大速度
+SPEED = 4  # エージェント最大速度
 object_cost = 100  # 障害物のコスト
 color_list = xx_mycolor.color_list
 start_list = []
@@ -50,7 +50,7 @@ class Map():
     """ マップ作りまーす """
 
     def __init__(self, object_cost=object_cost):
-        self.map = pd.read_excel('Map.xlsx', sheet_name=14)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=10)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
@@ -216,7 +216,7 @@ def result_print(result_agents):
         total_impact += agent.impact_count
         total_slow += agent.slow_count
     average_impact = total_impact/len(result_agents)
-    print(f"この結果は最初の{SKIP_SIMU_COUNT}回をスキップしています。")
+    print(f"--この結果は最初の{SKIP_SIMU_COUNT}回をスキップしています。--")
     print(f"対象フレーム数は{SKIP_SIMU_COUNT+1}~{SIMU_COUNT}です")
     print(
         f"総脱出数：{len(result_agents)}\n総減速数: {total_slow}\nトータルインパクト: {total_impact}\nアベレージインパクト: {round(average_impact,1)}\nアベレージスロウ: {round(total_slow/len(result_agents),1)}\n脱出数[人/f]: {len(result_agents)/(SIMU_COUNT-SKIP_SIMU_COUNT)}")
@@ -335,7 +335,7 @@ def simulation(SIMU_COUNT):
 
     ani = animation.FuncAnimation(
         fig, update, frames=SIMU_COUNT, interval=100, repeat=False)
-    plt.show()
+    # plt.show()
     # --- gif保存用↓ ---
     # ani.save("xx.gif", writer="imagemagick")
     # --- 結果出力 ---
@@ -350,10 +350,10 @@ def simulation(SIMU_COUNT):
 def heatMapping(total_map, red_map, blue_map):
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                            facecolor=xx_mycolor.Crandom())
+
     ax.set_title("全体ヒートマップ")
     sns.heatmap(total_map, cmap='cool', square=True)
     sca.scatman_heatver(ax, wall_list)
-
     plt.show()
     fig, ax1 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                             facecolor=xx_mycolor.Crandom())
@@ -368,6 +368,14 @@ def heatMapping(total_map, red_map, blue_map):
     sns.heatmap(blue_map, cmap='Blues', square=True)
     sca.scatman_heatver(ax2, wall_list)
     plt.show()
+    fig, ax4 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
+                            facecolor=xx_mycolor.Crandom())
+
+    ax4.set_title("全体ヒートマップ")
+    sns.heatmap(total_map, cmap='cool', square=True)
+    sca.scatman_heatver(ax4, wall_list)
+    plt.show()
+
 
     # ---------------
 if __name__ == "__main__":
