@@ -20,7 +20,7 @@ import copy
 from operator import attrgetter
 import seaborn as sns
 
-SIMU_COUNT = 260  # シミュレーション回数
+SIMU_COUNT = 1060  # シミュレーション回数
 SKIP_SIMU_COUNT = 60
 AGENT_NUM = 10  # 初期エージェント数
 BORN_AGENT_NUM = 30  # 新規エージェント数
@@ -28,7 +28,7 @@ HUTINOBE_BORN_RATE = 0.2
 BORN_INTERVAL = 1.0  # エージェント生成間隔
 MAP_SIZE_X = 80  # マップサイズ
 MAP_SIZE_Y = 40
-SPEED = 4  # エージェント最大速度
+SPEED = 3  # エージェント最大速度
 object_cost = 100  # 障害物のコスト
 color_list = xx_mycolor.color_list
 start_list = []
@@ -50,7 +50,7 @@ class Map():
     """ マップ作りまーす """
 
     def __init__(self, object_cost=object_cost):
-        self.map = pd.read_excel('Map.xlsx', sheet_name=12)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=14)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
