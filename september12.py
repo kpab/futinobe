@@ -50,7 +50,7 @@ class Map():
     """ マップ作りまーす """
 
     def __init__(self, object_cost=object_cost):
-        self.map = pd.read_excel('Map.xlsx', sheet_name=13)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=12)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
@@ -224,6 +224,8 @@ def result_print(result_agents):
 
 # シミュ
 def simulation(SIMU_COUNT):
+    global agents
+    plt.ion()
     s = 0  # シミュレーションカウント用
     sum_id = AGENT_NUM  # id合計
     result.append(f"最終更新: {datetime.datetime.now()}")
@@ -271,17 +273,15 @@ def simulation(SIMU_COUNT):
     sca.scatman_v2(ax, wall_list, goal_list,
                    goal_list_2, start_list, start_list_2, mix_list, mix_list_2)
 
-    def update(frame):
-        nonlocal s  # シミュレーションカウント
-        nonlocal sum_id
+    for i in range(SIMU_COUNT):
+
         s += 1
-        global result
-        global agents
+
         result.append(f"---------simu: {s}------------")
         print("simu: ", s)
         # ------------------------------
         ax.set_title(f"simu: {s}")
-        ax.clear()  # 前のフレームのエージェントをクリア
+        # ax.clear()  # 前のフレームのエージェントをクリア
         sca.mapping_set(ax, MAP_SIZE_X, MAP_SIZE_Y)
         ag.agentImpactUpdate(agents, maze)
         # ag.updateAgentTotalMap(agents, total_agent_map)
@@ -328,13 +328,16 @@ def simulation(SIMU_COUNT):
                     ax.text(agent.position[1], agent.position[0], agent.id)
                 result.append(agent.info())
                 sum_id += 1
-        # --- 障害物の再配置 ---
-        sca.scatman_v2(ax, wall_list, goal_list,
-                       goal_list_2, start_list, start_list_2, mix_list, mix_list_2)
-        # ------------
 
-    ani = animation.FuncAnimation(
-        fig, update, frames=SIMU_COUNT, interval=100, repeat=False)
+        # --- 障害物の再配置 ---
+        # sca.scatman_v2(ax, wall_list, goal_list,
+        #                goal_list_2, start_list, start_list_2, mix_list, mix_list_2)
+        # ------------
+        plt.ioff()
+        plt.show()
+
+    # ani = animation.FuncAnimation(
+    #     fig, update, frames=SIMU_COUNT, interval=100, repeat=False)
     # plt.show()
     # --- gif保存用↓ ---
     # ani.save("xx.gif", writer="imagemagick")
@@ -371,16 +374,12 @@ def heatMapping(total_map, red_map, blue_map):
     fig, ax4 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
                             facecolor=xx_mycolor.Crandom())
 
-    ax4.set_title("全体ヒートマップ")
-    sns.heatmap(total_map, cmap='cool', square=True)
-    sca.scatman_heatver(ax4, wall_list)
-    plt.show()
-
+    print(f"最大人口密度: {max(list(map(lambda x: max(x), total_map)))}")
 
     # ---------------
 if __name__ == "__main__":
-    bool_agText = input("テキストを表示しない場合は何か入力: ")
-    if bool_agText:
-        agent_text_on = False
+    # bool_agText = input("テキストを表示しない場合は何か入力: ")
+    # if bool_agText:
+    agent_text_on = False
     simulation(SIMU_COUNT)
     result_print(result_agents)
