@@ -50,7 +50,7 @@ class Map():
     """ マップ作りまーす """
 
     def __init__(self, object_cost=object_cost):
-        self.map = pd.read_excel('Map.xlsx', sheet_name=10)
+        self.map = pd.read_excel('Map.xlsx', sheet_name=15)
         # self.map = self.map.T
         self.map = self.map.fillna(0)  # NaNを0
         # --- Mapから各地点を取得しリストへ ---
@@ -351,11 +351,12 @@ def simulation(SIMU_COUNT):
 
 # ヒートマップ
 def heatMapping(total_map, red_map, blue_map):
+    total_map[0][0] = 5200
     fig, ax = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
-                           facecolor=xx_mycolor.Crandom())
+                           facecolor="gainsboro")
 
     ax.set_title("全体ヒートマップ")
-    sns.heatmap(total_map, cmap='cool', square=True)
+    sns.heatmap(total_map, cmap='Greens', square=True)
     sca.scatman_heatver(ax, wall_list)
     plt.show()
     fig, ax1 = plt.subplots(figsize=(MAP_SIZE_X, MAP_SIZE_Y),
